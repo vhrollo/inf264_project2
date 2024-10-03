@@ -1,6 +1,9 @@
 import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from typing import Tuple, Optional
+from sklearn.preprocessing import StandardScaler
+
+# preprocessing functions
 
 def generate_label(X: np.ndarray, y: np.ndarray, label: int, n: int, seed: Optional[int] = None):
     """generates n augmented images for a given label"""
@@ -10,9 +13,9 @@ def generate_label(X: np.ndarray, y: np.ndarray, label: int, n: int, seed: Optio
         rotation_range=20,
         width_shift_range=0.1,
         height_shift_range=0.1,
-        shear_range=0.2,
-        zoom_range=0.2,
-        fill_mode='nearest'
+        shear_range=0.1,
+        zoom_range=0.1,
+        fill_mode='nearest',
     )
     X_reshaped = X.reshape(X.shape[0], 20, 20, 1)
 
@@ -45,3 +48,14 @@ def generate_balanced_data(X: np.ndarray, y: np.ndarray, seed: Optional[int] = N
             y_balanced = np.hstack([y_balanced, y_aug])
 
     return X_balanced, y_balanced
+
+
+def scale_data(X: np.ndarray) -> np.ndarray:
+    """scales the data using Sklearn StandardScaler"""
+    ss = StandardScaler()
+    return ss.fit_transform(X)
+
+
+def scale_data10(X: np.ndarray) -> np.ndarray:
+    """scales the data to be between 0 and 1"""
+    return X / 255
