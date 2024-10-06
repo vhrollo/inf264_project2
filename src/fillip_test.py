@@ -19,6 +19,9 @@ EPOCHS = 10
 TRAIN_SPLIT = 0.70
 TEST_SPLIT = 1 - TRAIN_SPLIT
 
+import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
 def data(device):
     dataset = np.load('./data/dataset.npz',)
     X, y = dataset['X'], dataset['y']
