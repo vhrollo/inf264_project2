@@ -45,11 +45,11 @@ def data(device):
     X_test = X_test.reshape(-1, 1, 20, 20)
 
     # this is doen so that the values are on the cpu already
-    X_train = torch.tensor(X_train, dtype=torch.float32).to(device)
+    X_train = torch.tensor(X_train, dtype=torch.float64).to(device)
     y_train = torch.tensor(y_train, dtype=torch.long).to(device)
-    X_val = torch.tensor(X_val, dtype=torch.float32).to(device)
+    X_val = torch.tensor(X_val, dtype=torch.float64).to(device)
     y_val = torch.tensor(y_val, dtype=torch.long).to(device)
-    X_test = torch.tensor(X_test, dtype=torch.float32).to(device)
+    X_test = torch.tensor(X_test, dtype=torch.float64).to(device)
     y_test = torch.tensor(y_test, dtype=torch.long).to(device)
 
     train_dataset = torch.utils.data.TensorDataset(X_train, y_train)
@@ -93,6 +93,7 @@ def main():
     
     train_loader, val_loader, test_loader, y_test = data(device)
     model = LeNet(numChannels=1, classes=17).to(device)
+    model = model.double()
     optimizer = torch.optim.SGD(model.parameters(), lr=INIT_LR, momentum=MOMENTUM)
     criterion = nn.NLLLoss()
 
