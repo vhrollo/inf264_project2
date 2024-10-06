@@ -1,5 +1,6 @@
 import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import tensorflow as tf
 from typing import Tuple, Optional
 from sklearn.preprocessing import StandardScaler
 
@@ -36,7 +37,9 @@ def generate_label(X: np.ndarray, y: np.ndarray, label: int, n: int, seed: Optio
 def generate_balanced_data(X: np.ndarray, y: np.ndarray, seed: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray]:
     """generates balanced data by augmenting the minority classes"""
 
-    if seed is not None: np.random.seed(seed)
+    if seed is not None: 
+        np.random.seed(seed)
+        tf.random.set_seed(seed)
 
     labels, counts = np.unique(y, return_counts=True)
     n_samples = np.max(counts)
