@@ -76,7 +76,7 @@ def hog_features(X: np.ndarray) -> np.ndarray:
         hog_features.append(hog_feat)
     return np.array(hog_features)
 
-def color_cutoff(data: np.ndarray, black_cutoff=40, white_cutoff=245) -> np.ndarray:
+def color_cutoff(data: np.ndarray, black_cutoff, white_cutoff) -> np.ndarray:
         """thresholds the data to black and white
           if the pixel value is below black_cutoff 
           or above white_cutoff
