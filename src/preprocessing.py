@@ -3,6 +3,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import tensorflow as tf
 from typing import Tuple, Optional
 from sklearn.preprocessing import StandardScaler
+from skimage.feature import hog
 
 # preprocessing functions
 
@@ -58,7 +59,28 @@ def scale_data(X: np.ndarray) -> np.ndarray:
     ss = StandardScaler()
     return ss.fit_transform(X)
 
-
 def scale_data10(X: np.ndarray) -> np.ndarray:
     """scales the data to be between 0 and 1"""
     return X / 255
+
+def hog_features(X: np.ndarray) -> np.ndarray:
+    """extracts HOG features from the images"""
+    hog_features = []
+    for img in X:
+        hog_feat = hog(img.reshape(20, 20), 
+                       orientations=9, 
+                       pixels_per_cell=(4, 4),
+                       cells_per_block=(2, 2), 
+                       block_norm='L2-Hys', 
+                       visualize=False)
+        hog_features.append(hog_feat)
+    return np.array(hog_features)
+
+def color_cutoff(data: np.ndarray, black_cutoff=40, white_cutoff=245) -> np.ndarray:
+        """thresholds the data to black and white
+          if the pixel value is below black_cutoff 
+          or above white_cutoff
+        """
+        b_filter = np.where(data < black_cutoff, 0, data)
+        w_filter = np.where(b_filter > white_cutoff, 255, b_filter)
+        return w_filter
