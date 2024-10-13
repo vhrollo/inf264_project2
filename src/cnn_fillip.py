@@ -10,7 +10,7 @@ import random
 from preprocessing import generate_balanced_data, scale_data10
 from nets import LeNet, AlexNetEsque
 
-# Define some constants
+# if 
 seed = 42
 BATCH_SIZE = 32
 EPOCHS = 10
@@ -21,8 +21,9 @@ TRAIN_SPLIT = 0.70
 TEST_SPLIT = 1 - TRAIN_SPLIT
 
 VAL_TEST_SPLIT = 0.5
-best_model_path = './other/best_model.pth'
-best_model_tuned_path = './other/best_model_tuned.pth'
+best_model_path = './other/LeNet_best_model.pth'
+best_model_tuned_path = './other/LeNet_best_model_tuned.pth'
+MODEL = LeNet # change to AlexNetEsque if needed
 
 
 def data(device):
@@ -59,10 +60,10 @@ def data(device):
 
 def train_and_evaluate(lr, train_loader, val_loader, device):
     print(f"Training with learning rate: {lr}")
-    model = AlexNetEsque(numChannels=1, classes=17).to(device)
+    model = MODEL(numChannels=1, classes=17).to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=MOMENTUM)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=2, verbose=True)
-    criterion = nn.NLLLoss()
+    criterion = nn.CrossEntropyLoss()
 
     H = {'train_loss': [], 'val_loss': [], 'train_acc': [], 'val_acc': []}
     best_val_loss = float('inf')
@@ -130,7 +131,7 @@ def train_and_evaluate(lr, train_loader, val_loader, device):
 
 
 def grid_search_learning_rate(train_loader, val_loader, device):
-    learning_rates = [0.01, 0.001, 0.0001]
+    learning_rates = [0.1, 0.01, 0.001, 0.0001]
     best_val_acc = 0
     best_lr = None
     best_model_state = None
@@ -160,10 +161,11 @@ def main():
     torch.set_num_threads(1) 
 
     train_loader, val_loader, test_loader, y_test, y_val = data(device)
-
+    start = time.time()
     best_lr = grid_search_learning_rate(train_loader, val_loader, device)
-
-    model = AlexNetEsque(numChannels=1, classes=17).to(device)
+    end = time.time()
+    print(f"Grid search took {end-start:.2f}s")
+    model = MODEL(numChannels=1, classes=17).to(device)
     model.load_state_dict(torch.load(best_model_tuned_path))
     criterion = nn.NLLLoss()
 
