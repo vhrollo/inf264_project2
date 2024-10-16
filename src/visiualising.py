@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+
 
 def visualize_samples(X, y = None, image_size=(20, 20)):
     """visualizes the first num_samples samples from the dataset"""
@@ -32,4 +35,13 @@ def visualize_preds(X, cols=10):
             ax.axis('off')
 
     plt.tight_layout()
+    plt.show()
+
+def visualize_confusion_matrix(y_val, y_val_pred, title='Confusion Matrix'):
+    cm = confusion_matrix(y_val, y_val_pred)
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title(f"{title}")
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
     plt.show()
