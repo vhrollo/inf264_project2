@@ -46,9 +46,11 @@ def visualize_confusion_matrix(y_val, y_val_pred, title='Confusion Matrix'):
     plt.ylabel('True')
     plt.show()
 
-def compare_model_accuracy(*model_final_acc):
+def compare_model_accuracy(labels, *model_final_acc):
     # Generate model names based on the number of accuracies provided
-    models = [f'Model {i+1}' for i in range(len(model_final_acc))]
+    length = max(len(model_final_acc) - len(labels), 0)
+    models = labels[:len(model_final_acc)] + [f'Model {length + i+1}' for i in range(length)]
+    
     accuracies = list(model_final_acc)
     
     plt.figure(figsize=(8, 6))
@@ -68,7 +70,7 @@ def compare_model_accuracy(*model_final_acc):
             va='bottom'
         )
     
-    plt.title('Final Model Accuracies')
+    plt.title('Model accuracies on the validation set')
     plt.ylabel('Accuracy')
     plt.ylim(0, 1) 
     plt.show()

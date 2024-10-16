@@ -67,11 +67,8 @@ def train(X_train, y_train, n, folds, seed=42):
 
     return best_svc, best_params
 
-def train_pca(X_train, y_train, X_val, X_test, n, folds, seed=42):
+def train_pca(X_train, y_train, X_val, X_test, n, folds, pca_n=5, seed=42):
     """train the model with pca where pca is a hyperparameter as well"""
-    # how many pca to test
-    pca_n = 5
-
 
     n_components_list = np.linspace(0.9, 0.99, pca_n)
 
@@ -107,14 +104,17 @@ def train_pca(X_train, y_train, X_val, X_test, n, folds, seed=42):
         for p in param_list_shorted
     ]
 
-    for n_components in n_components_list:
+    print("Starting PCA training...")
+    pca_start = time()
+    for i, n_components in enumerate(n_components_list):
+        print(f"\n--Training with {n_components:.2f} components {i+1}/{pca_n}--")
+
         pca = PCA(n_components=n_components, random_state=seed)
         X_train_pca = pca.fit_transform(X_train)
         X_val_pca = pca.transform(X_val)
         X_test_pca = pca.transform(X_test)
-
+        
         print(f"Data went from {X_train.shape} to {X_train_pca.shape}")
-        print("training starts now...\n")
 
         svc = SVC(random_state=seed, probability=True)
 
@@ -125,13 +125,9 @@ def train_pca(X_train, y_train, X_val, X_test, n, folds, seed=42):
         )
 
         start = time()
-        print("training starts now...\n")
-        end = time()
-
         grid_search.fit(X_train_pca, y_train)
-        print("---------- training is finished. ----------\n")
-        print(f"Random Search took {end - start:.2f} seconds")
-        print(f"Best Parameters: {grid_search.best_params_}\n")
+        end = time()
+        print(f"Random Search for {n_components:.2f} took {end - start:.2f} s")
 
         best_svc = grid_search.best_estimator_
         best_params = grid_search.best_params_
@@ -142,6 +138,11 @@ def train_pca(X_train, y_train, X_val, X_test, n, folds, seed=42):
             best_n_components = n_components
             best_pca = pca
             best_model = best_svc
+
+    pca_end = time()
+    print("---------- training is finished. ----------\n")
+    print(f"PCA training took {pca_end - pca_start:.2f} seconds")
+    print(f"Best Parameters: {best_params} and best n_components: {best_n_components}")
 
     return best_model, best_params, best_pca, best_n_components, X_val_pca, X_test_pca
 
@@ -156,8 +157,6 @@ def evaluate(model,X, y):
 
     return y_pred, accuracy, c_r
 
-
-        
 
 def main():
     seed = 42
@@ -193,7 +192,7 @@ if __name__ == "__main__":
 # making this into a class for convenience
 class SVM:
     # this abstraction of a class is horrible i really am sorry lmao
-    def __init__(self, X, y, n, folds, pca=False, seed=42):
+    def __init__(self, X, y, n, folds, pca_n=5, pca=False, seed=42):
         self.seed = seed
         np.random.seed(seed)
         random.seed(seed)
@@ -206,6 +205,7 @@ class SVM:
         self.y_val = y_val
         self.y_test = y_test
         self.n = n
+        self.pca_n = pca_n
         self.folds = folds
 
     def fit(self):
@@ -217,7 +217,8 @@ class SVM:
                 self.X_val, 
                 self.X_test,
                 self.n,
-                self.folds, 
+                self.folds,
+                self.pca_n,
                 self.seed)
         else:
             self.best_model, self.best_params = train(
