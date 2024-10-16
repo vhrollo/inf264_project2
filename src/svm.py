@@ -13,20 +13,13 @@ import seaborn as sns
 from time import time
 import random
 
-seed = 42
-TRAIN_SPLIT = 0.7
-VAL_TEST_SPLIT = 0.5
-
-def data():
+def data(X, y, seed=42):
     """Prepare data for training and evaluation"""
-    dataset = np.load('./data/dataset.npz')
-    X, y = dataset['X'], dataset['y']
-
     X_train, X_tmp, y_train, y_tmp = train_test_split(
-        X, y, train_size=TRAIN_SPLIT, random_state=seed
+        X, y, train_size=0.7, random_state=seed
         )
     X_val, X_test, y_val, y_test = train_test_split(
-        X_tmp, y_tmp, test_size=VAL_TEST_SPLIT, random_state=seed
+        X_tmp, y_tmp, test_size=0.5, random_state=seed
         )
 
     # balancing the data with augmentation pieces
@@ -44,15 +37,8 @@ def data():
     return X_train, X_val, X_test, y_train, y_val, y_test
 
 
-def train(X_train, y_train):
+def train(X_train, y_train, n, folds, seed=42):
     """train the model without pca"""
-
-    # how many random samples to test
-    n = 5
-
-    # how many folds
-    cv = 3
-
     uniform_samples = 100
     param_dist = {
         'C': np.random.uniform(0.1, 100, size=uniform_samples),
@@ -65,8 +51,8 @@ def train(X_train, y_train):
 
     svc = SVC(random_state=seed, probability=True)
     random_search = RandomizedSearchCV(
-        svc, param_distributions=param_dist, n_iter=5,
-        cv=5, n_jobs=1, verbose=2, random_state=seed, scoring='accuracy'
+        svc, param_distributions=param_dist, n_iter=n,
+        cv=folds, n_jobs=1, verbose=2, random_state=seed, scoring='accuracy'
     )
     start = time()
     random_search.fit(X_train, y_train)
@@ -81,18 +67,13 @@ def train(X_train, y_train):
 
     return best_svc, best_params
 
-def train_pca(X_train, y_train, X_val, X_test):
+def train_pca(X_train, y_train, X_val, X_test, n, folds, seed=42):
     """train the model with pca where pca is a hyperparameter as well"""
     # how many pca to test
-    n = 5
+    pca_n = 5
 
-    # how many random samples to test
-    samples = 3
 
-    # how many folds
-    cv = 3
-
-    n_components_list = np.linspace(0.9, 0.99, n)
+    n_components_list = np.linspace(0.9, 0.99, pca_n)
 
     best_accuracy = 0
     best_n_components = None
@@ -112,7 +93,7 @@ def train_pca(X_train, y_train, X_val, X_test):
     from itertools import product
     from sklearn.model_selection import GridSearchCV
     params_list = list(product(param_dist['C'], param_dist['gamma'], param_dist['kernel'], param_dist['degree'], param_dist['coef0'], param_dist['shrinking']))
-    param_list_shorted = random.sample(params_list, samples)
+    param_list_shorted = random.sample(params_list, n) # sample n random parameters
 
     # convert to list of dictionaries
     param_list_shorted = [{
@@ -140,7 +121,7 @@ def train_pca(X_train, y_train, X_val, X_test):
         
         grid_search = GridSearchCV(
             svc, param_grid=param_list_shorted,
-            cv=cv, n_jobs=1, verbose=2, scoring='accuracy'
+            cv=folds, n_jobs=1, verbose=2, scoring='accuracy'
         )
 
         start = time()
@@ -176,33 +157,19 @@ def evaluate(model,X, y):
     return y_pred, accuracy, c_r
 
 
-def svm_without_pca():
-    X_train, X_val, _, y_train, y_val, y_test = data()
-    best_svc, best_params = train(X_train, y_train)
-    
-    print("Evaluating...")
-    print(f"Best Parameters: {best_params}\n")
-    y_val_pred, val_acc, val_c_r = evaluate(best_svc, X_val, y_val)
-    return y_val_pred, val_acc, val_c_r
-
-
-def svm_with_pca():
-    X_train, X_val, X_test, y_train, y_val, y_test = data()
-    best_model, best_params, best_pca, best_n_components, X_val_pca, X_test_pca = train_pca(X_train, y_train, X_val, X_test)
-    
-    print("Evaluating...")
-    print(f"Best Parameters: {best_params}, and cpa n_components {best_n_components}\n")
-    y_val_pred, val_acc, val_c_r = evaluate(best_model, X_val_pca, y_val)
-    return y_val_pred, val_acc, val_c_r
-
+        
 
 def main():
+    seed = 42
     np.random.seed(seed)
     random.seed(seed)
 
-    X_train, X_val, X_test, y_train, y_val, y_test = data()
+    dataset = np.load('./data/dataset.npz')
+    X, y = dataset['X'], dataset['y']
 
-    best_svc, best_params = train(X_train, y_train)
+    X_train, X_val, X_test, y_train, y_val, y_test = data(X, y, seed=seed)
+
+    best_svc, best_params = train(X_train, y_train, seed=seed)
     
     print("Evaluating...")
     print(f"Best Parameters: {best_params}\n")
@@ -222,3 +189,56 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# making this into a class for convenience
+class SVM:
+    # this abstraction of a class is horrible i really am sorry lmao
+    def __init__(self, X, y, n, folds, pca=False, seed=42):
+        self.seed = seed
+        np.random.seed(seed)
+        random.seed(seed)
+        self.uses_pca = pca
+        X_train, X_val, X_test, y_train, y_val, y_test = data(X, y, seed=seed)
+        self.X_train = X_train
+        self.X_val = X_val
+        self.X_test = X_test
+        self.y_train = y_train
+        self.y_val = y_val
+        self.y_test = y_test
+        self.n = n
+        self.folds = folds
+
+    def fit(self):
+        if self.uses_pca:
+            #felt very cursed writing this mb
+            self.best_model, self.best_params, self.best_pca, self.best_n_components, self.X_val_pca, self.X_test_pca = train_pca(
+                self.X_train, 
+                self.y_train, 
+                self.X_val, 
+                self.X_test,
+                self.n,
+                self.folds, 
+                self.seed)
+        else:
+            self.best_model, self.best_params = train(
+                self.X_train, 
+                self.y_train,
+                self.n,
+                self.folds, 
+                self.seed)
+
+    def evaluate(self):
+        if self.uses_pca:
+            y_val_pred, val_acc, val_c_r = evaluate(self.best_model, self.X_val_pca, self.y_val)
+            return (y_val_pred, val_acc, val_c_r)
+        else:
+            y_val_pred, val_acc, val_c_r = evaluate(self.best_model, self.X_val, self.y_val)
+            return (y_val_pred, val_acc, val_c_r)
+        
+    def test(self):
+        if self.uses_pca:
+            y_test_pred, test_acc, test_c_r = evaluate(self.best_model, self.X_test_pca, self.y_test)
+            return (y_test_pred, test_acc, test_c_r)
+        else:
+            y_test_pred, test_acc, test_c_r = evaluate(self.best_model, self.X_test, self.y_test)
+            return (y_test_pred, test_acc, test_c_r)

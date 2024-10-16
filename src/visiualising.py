@@ -45,3 +45,31 @@ def visualize_confusion_matrix(y_val, y_val_pred, title='Confusion Matrix'):
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.show()
+
+def compare_model_accuracy(*model_final_acc):
+    # Generate model names based on the number of accuracies provided
+    models = [f'Model {i+1}' for i in range(len(model_final_acc))]
+    accuracies = list(model_final_acc)
+    
+    plt.figure(figsize=(8, 6))
+    
+    # Create a bar chart with dynamic colors
+    colors = plt.cm.tab10.colors  # Use a colormap with enough distinct colors
+    bars = plt.bar(models, accuracies, color=colors[:len(models)])
+    
+    # Add value labels on top of each bar
+    for bar, accuracy in zip(bars, accuracies):
+        yval = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2.0, 
+            yval + 0.005, 
+            f'{yval:.2%}', 
+            ha='center', 
+            va='bottom'
+        )
+    
+    plt.title('Final Model Accuracies')
+    plt.ylabel('Accuracy')
+    plt.ylim(0, 1) 
+    plt.show()
+
