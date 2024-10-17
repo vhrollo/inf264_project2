@@ -40,10 +40,12 @@ class CNN_KERAS:
 
         if model == 'lenet':
             self.best_model_tuned_path = f"{path}LeNet_model_tuned.keras"
+            self.best_model_tuned_path_new = f"{path}LeNet_model_tuned_new.keras"
             self.MODEL = build_LNModel
             self.name = "LeNet"
         elif model == 'alexnet':
             self.best_model_tuned_path = f"{path}alexnet_model_tuned.keras"
+            self.best_model_tuned_path_new = f"{path}alexnet_model_tuned_new.keras"
             self.MODEL = build_ANModel
             self.name = "AlexNet"
         else:
@@ -73,10 +75,10 @@ class CNN_KERAS:
         # Get the best model
         self.best_trained_model = tunerRandomSearch.get_best_models()[0]
         model = self.best_trained_model
-        # Fit the best params to the whole training-data
+        # Fit the best params to the whole training data
         model.fit(X,y,epochs=8)
-        # Save / overwrite the best model as a file in /other
-        model.save(self.best_model_tuned_path)
+        # Save trained model as new file to avoid rewriting original.
+        model.save(self.best_model_tuned_path_new)
     
     def loadModel(path = "../other/best_model.keras"):
         model = keras.models.load_model(path)
