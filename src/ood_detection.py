@@ -4,24 +4,47 @@ from sklearn.preprocessing import MinMaxScaler
 from preprocessing import hog_features
 
 class OODDetection:
-    def __init__(self, best_svc, best_pca, X_train_pca, y_train, scaler, seed=42, n_components=17):
+    def __init__(self, best_svc, best_pca, X_train_pca, y_train, scaler, seed=42, n_components=17, use_probs=False):
+        """
+        This class is made for task 3, where we are to detect OOD samples, 
+        and the methods that are implemented are: 
+        1. GaussianMixture model with our trained SVM
+        2. Mahalanobis distance
+        """
+
+        # store the best model, the pca model, the scaling model,
+        # and other stuff needed to both transform without data leakage,
+        # but also to detect OOD samples using the svm model
         self.best_svc = best_svc
         self.best_pca = best_pca
         self.seed = seed
         self.n_components = n_components
         self.scaler = scaler
+        self.use_probs = use_probs
 
         # Fit GaussianMixture model on the training PCA data
         self.gmm = GaussianMixture(n_components=self.n_components, 
                                    covariance_type='full', 
                                    random_state=self.seed, 
                                    init_params='kmeans')
-        self.gmm.fit(X_train_pca)
+        
+        # Fit the GMM model on the training data
+        # If we are using svm we will fit the gmm
+        # on the probabilities
+        if self.use_probs:
+            probs = self.best_svc.predict_proba(X_train_pca)
+            self.gmm.fit(probs)
+        else:
+            self.gmm.fit(X_train_pca)
+
         print(f"GaussianMixture model with {self.n_components} components fitted on training data.")
 
+        # this is for mahalanobis distance
         self.class_means = []
         self.inv_cov_matrices = []
 
+        # calculate the mean and cov matrix for each class
+        # for mahalanobis distance
         for class_label in np.unique(y_train):
             X_class = X_train_pca[y_train == class_label]
             mean = np.mean(X_class, axis=0)
@@ -38,12 +61,12 @@ class OODDetection:
         return X_pca
 
 
-    def predict_guassian(self, X_transformed):
-        return self.best_svc.predict_proba(X_transformed)
-
-
     def detect_ood_gaussian(self, X_transformed, percentile=5.5):
-        log_likelihood = self.gmm.score_samples(X_transformed)
+        if self.use_probs:
+            probs = self.best_svc.predict_proba(X_transformed)
+            log_likelihood = self.gmm.score_samples(probs)
+        else:
+            log_likelihood = self.gmm.score_samples(X_transformed)
 
         threshold = np.percentile(log_likelihood, percentile)
         ood_indices = log_likelihood < threshold
