@@ -222,6 +222,30 @@ if __name__ == "__main__":
 
 class CNN_PT:
     def __init__(self, X, y, folds, seed, epochs, batch_size, path, model = 'lenet'):
+        """
+        Initialize the CNN model with the data and parameters.\\
+        This will be included to prove that we have worked on this,\\
+        even though we argument against it in the report.
+
+        Parameters:
+            X (np.ndarray): 
+                The input data
+            y (np.ndarray):
+                The target labels
+            folds (int):
+                The number of folds for cross validation
+            seed (int):
+                The seed for reproducibility
+            epochs (int):
+                The number of epochs for training
+            batch_size (int):
+                The batch size for training
+            path (str):
+                The path to save/load the models
+            model (str):
+                The model to use, either 'lenet' or 'alexnet'
+        """
+
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)

@@ -6,7 +6,7 @@ from preprocessing import hog_features
 class OODDetection:
     def __init__(self, best_svc, best_pca, X_train_pca, y_train, scaler, seed=42, n_components=17, use_probs=False):
         """
-        This class is made for task 3, where we are to detect OOD samples, 
+        This class is made for task 3, where we are to detect OOD samples,\\
         and the methods that are implemented are: 
         1. GaussianMixture model with our trained SVM
         2. Mahalanobis distance
@@ -55,6 +55,13 @@ class OODDetection:
 
 
     def fit(self, X):
+        """
+        Transform the input data to the PCA of the best model found earlier
+
+        Parameters:
+        X (np.ndarray):
+            The input data        
+        """
         X_hog = hog_features(X)
         X_scaled = self.scaler.transform(X_hog)
         X_pca = self.best_pca.transform(X_scaled)
@@ -62,6 +69,16 @@ class OODDetection:
 
 
     def detect_ood_gaussian(self, X_transformed, percentile=5.5):
+        """
+        Detect OOD samples using the GaussianMixture model with or without probabilities
+        
+        Parameters:
+        X_transformed (np.ndarray):
+            The transformed input data
+        percentile (float):
+            The percentile to use as threshold
+        """
+
         if self.use_probs:
             probs = self.best_svc.predict_proba(X_transformed)
             log_likelihood = self.gmm.score_samples(probs)
@@ -76,6 +93,11 @@ class OODDetection:
 
 
     def mahalanobis_distance_classwise(self, x):
+        """
+        Helper function to calculate the mahalonobis distance for an input x and\\
+        its relation to the class means and inverse covariance matrices of\\
+        all the classes. 
+        """
         
         distances = []
         for mean, inv_cov in zip(self.class_means, self.inv_cov_matrices):
@@ -86,6 +108,10 @@ class OODDetection:
 
 
     def detect_ood_mahalanobis(self, X_transformed, percentile=93):
+        """
+        Detect OOD samples using the Mahalanobis distance, which techinically\\
+        could be done without any relicance on the SVM model.
+        """
         distances = np.array([self.mahalanobis_distance_classwise(x) for x in X_transformed])
 
         threshold = np.percentile(distances, percentile)

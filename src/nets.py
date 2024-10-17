@@ -3,6 +3,9 @@ import torch.nn as nn
 
 class LeNet(nn.Module):
     def __init__(self, numChannels, classes):
+        """
+        LeNet CNN model for the MNIST dataset
+        """
         super(LeNet, self).__init__()
 
         #scales it down to 18x18 x 20
@@ -74,6 +77,9 @@ class LeNet(nn.Module):
 #https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf
 class AlexNetEsque(nn.Module):
     def __init__(self, numChannels, classes):
+        """
+        AlexNet CNN model for the MNIST dataset
+        """
         super(AlexNetEsque, self).__init__()
 
         # 20 x 20 x 64
@@ -172,6 +178,9 @@ class AlexNetEsque(nn.Module):
         self.logsoftmax = nn.LogSoftmax(dim=1)
 
     def _forward_features(self, x):
+        """
+        helper function to deal for clean implement
+        """
         x = self.conv1(x)
         x = self.relu1(x)
         x = self.maxpool1(x)
@@ -206,6 +215,7 @@ class AlexNetEsque(nn.Module):
         x = self.fc3(x)
         output = self.logsoftmax(x)
         return output
+
 
 ####################
 # Tensorflow Keras #

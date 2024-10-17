@@ -5,7 +5,12 @@ from sklearn.metrics import confusion_matrix
 
 
 def visualize_samples(X, y = None, image_size=(20, 20)):
-    """visualizes the first num_samples samples from the dataset"""
+    """
+    visualizes the first num_samples samples from the dataset.
+    If y is provided, it will also display the label for each sample.
+    Given that hog will be used, and it will resample to another size,
+    we added image size by deafult 20x20.
+    """
     plt.figure(figsize=(6, 6))
     indices = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     for i, idx in enumerate(indices):
@@ -19,6 +24,8 @@ def visualize_samples(X, y = None, image_size=(20, 20)):
 
 
 def visualize_preds(X, title,cols=10):
+    """will just visualize the all in X, with being 'cols' wide'"""
+
     num_ood_samples = len(X)
 
     num_cols = cols
@@ -39,6 +46,10 @@ def visualize_preds(X, title,cols=10):
     plt.show()
 
 def visualize_confusion_matrix(y_val, y_val_pred, title='Confusion Matrix'):
+    """
+    Visualize the confusion matrix of the model
+    using seaborn's heatmap, bc it looks better B-).
+    """
     cm = confusion_matrix(y_val, y_val_pred)
     plt.figure(figsize=(10, 8))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
@@ -48,6 +59,11 @@ def visualize_confusion_matrix(y_val, y_val_pred, title='Confusion Matrix'):
     plt.show()
 
 def compare_model_accuracy(header, labels, *model_final_acc):
+    """
+    Compare the accuracy of different models,
+    which works with any amount of models and 
+    their accuracies.
+    """
     # Generate model names based on the number of accuracies provided
     length = max(len(model_final_acc) - len(labels), 0)
     models = labels[:len(model_final_acc)] + [f'Model {length + i+1}' for i in range(length)]
