@@ -134,8 +134,8 @@ class RandomForest:
 
     def evaluate(self):
         y_val_pred, val_acc, val_c_r = evaluate(self.best_model, self.X_val, self.y_val)
-        return (y_val_pred, val_acc, val_c_r)
+        return (y_val_pred, val_acc, val_c_r, self.y_val)
 
     def test(self):
         y_test_pred, test_acc, test_c_r = evaluate(self.best_model, self.X_test, self.y_test)
-        return (y_test_pred, test_acc, test_c_r)
+        return (y_test_pred, test_acc, test_c_r, self.y_test)

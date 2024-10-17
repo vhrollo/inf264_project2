@@ -18,7 +18,7 @@ def visualize_samples(X, y = None, image_size=(20, 20)):
     plt.show()
 
 
-def visualize_preds(X, cols=10):
+def visualize_preds(X, title,cols=10):
     num_ood_samples = len(X)
 
     num_cols = cols
@@ -34,6 +34,7 @@ def visualize_preds(X, cols=10):
         else:
             ax.axis('off')
 
+    plt.suptitle(title)
     plt.tight_layout()
     plt.show()
 
@@ -46,17 +47,21 @@ def visualize_confusion_matrix(y_val, y_val_pred, title='Confusion Matrix'):
     plt.ylabel('True')
     plt.show()
 
-def compare_model_accuracy(labels, *model_final_acc):
+def compare_model_accuracy(header, labels, *model_final_acc):
     # Generate model names based on the number of accuracies provided
     length = max(len(model_final_acc) - len(labels), 0)
     models = labels[:len(model_final_acc)] + [f'Model {length + i+1}' for i in range(length)]
     
     accuracies = list(model_final_acc)
-    
+
+    max_acc = max(accuracies)
+    min_acc = min(accuracies)    
+
+
     plt.figure(figsize=(8, 6))
     
     # Create a bar chart with dynamic colors
-    colors = plt.cm.tab10.colors  # Use a colormap with enough distinct colors
+    colors = plt.cm.Pastel1.colors
     bars = plt.bar(models, accuracies, color=colors[:len(models)])
     
     # Add value labels on top of each bar
@@ -64,14 +69,19 @@ def compare_model_accuracy(labels, *model_final_acc):
         yval = bar.get_height()
         plt.text(
             bar.get_x() + bar.get_width() / 2.0, 
-            yval + 0.005, 
+            yval + 0.01, 
             f'{yval:.2%}', 
             ha='center', 
             va='bottom'
         )
     
-    plt.title('Model accuracies on the validation set')
+    x_positions = [bar.get_x() + bar.get_width() / 2.0 for bar in bars]
+    plt.plot(x_positions, accuracies, color='coral', marker='o', linestyle='-', label='Accuracy Trend')
+
+
+    plt.title(f"{header}")
     plt.ylabel('Accuracy')
-    plt.ylim(0, 1) 
+    padding = 0.05
+    plt.ylim(min_acc - padding, max_acc + padding)
     plt.show()
 

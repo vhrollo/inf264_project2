@@ -34,7 +34,7 @@ def data(X, y, seed=42):
     X_val = scaler.transform(X_val)
     X_test = scaler.transform(X_test)
 
-    return X_train, X_val, X_test, y_train, y_val, y_test
+    return X_train, X_val, X_test, y_train, y_val, y_test, scaler
 
 
 def train(X_train, y_train, n, folds, seed=42):
@@ -144,7 +144,7 @@ def train_pca(X_train, y_train, X_val, X_test, n, folds, pca_n=5, seed=42):
     print(f"PCA training took {pca_end - pca_start:.2f} seconds")
     print(f"Best Parameters: {best_params} and best n_components: {best_n_components}")
 
-    return best_model, best_params, best_pca, best_n_components, X_val_pca, X_test_pca
+    return best_model, best_params, best_pca, best_n_components, X_train_pca, X_val_pca, X_test_pca
 
 
 def evaluate(model,X, y):
@@ -166,7 +166,7 @@ def main():
     dataset = np.load('./data/dataset.npz')
     X, y = dataset['X'], dataset['y']
 
-    X_train, X_val, X_test, y_train, y_val, y_test = data(X, y, seed=seed)
+    X_train, X_val, X_test, y_train, y_val, y_test, scaler = data(X, y, seed=seed)
 
     best_svc, best_params = train(X_train, y_train, seed=seed)
     
@@ -197,7 +197,7 @@ class SVM:
         np.random.seed(seed)
         random.seed(seed)
         self.uses_pca = pca
-        X_train, X_val, X_test, y_train, y_val, y_test = data(X, y, seed=seed)
+        X_train, X_val, X_test, y_train, y_val, y_test, scaler = data(X, y, seed=seed)
         self.X_train = X_train
         self.X_val = X_val
         self.X_test = X_test
@@ -207,11 +207,12 @@ class SVM:
         self.n = n
         self.pca_n = pca_n
         self.folds = folds
+        self.scaler = scaler
 
     def fit(self):
         if self.uses_pca:
             #felt very cursed writing this mb
-            self.best_model, self.best_params, self.best_pca, self.best_n_components, self.X_val_pca, self.X_test_pca = train_pca(
+            self.best_model, self.best_params, self.best_pca, self.best_n_components, self.X_train_pca, self.X_val_pca, self.X_test_pca = train_pca(
                 self.X_train, 
                 self.y_train, 
                 self.X_val, 
@@ -231,15 +232,15 @@ class SVM:
     def evaluate(self):
         if self.uses_pca:
             y_val_pred, val_acc, val_c_r = evaluate(self.best_model, self.X_val_pca, self.y_val)
-            return (y_val_pred, val_acc, val_c_r)
+            return (y_val_pred, val_acc, val_c_r, self.y_val)
         else:
             y_val_pred, val_acc, val_c_r = evaluate(self.best_model, self.X_val, self.y_val)
-            return (y_val_pred, val_acc, val_c_r)
+            return (y_val_pred, val_acc, val_c_r, self.y_val)
         
     def test(self):
         if self.uses_pca:
             y_test_pred, test_acc, test_c_r = evaluate(self.best_model, self.X_test_pca, self.y_test)
-            return (y_test_pred, test_acc, test_c_r)
+            return (y_test_pred, test_acc, test_c_r, self.y_test)
         else:
             y_test_pred, test_acc, test_c_r = evaluate(self.best_model, self.X_test, self.y_test)
-            return (y_test_pred, test_acc, test_c_r)
+            return (y_test_pred, test_acc, test_c_r, self.y_test)

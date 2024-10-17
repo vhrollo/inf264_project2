@@ -284,7 +284,7 @@ class CNN_PT:
         print("Evaluating model on validation data...")
         _, val_acc, val_preds, val_labels = evaluate(self.trained_model, self.val_loader, self.criterion, self.device)
         val_c_r = classification_report(val_labels, val_preds) 
-        return (val_preds, val_acc, val_c_r)
+        return (val_preds, val_acc, val_c_r, val_labels)
     
     def test(self, load = True):
         if load:
@@ -294,7 +294,7 @@ class CNN_PT:
         print("Evaluating model on test data...")
         _, test_acc, test_preds, test_labels = evaluate(self.trained_model, self.test_loader, self.criterion, self.device)
         test_c_r = classification_report(test_labels, test_preds)
-        return (test_preds, test_acc, test_c_r)
+        return (test_preds, test_acc, test_c_r, test_labels)
 
 
 
