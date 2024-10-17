@@ -23,7 +23,7 @@ os.environ['OMP_NUM_THREADS'] = '1'
 os.environ['TF_NUM_INTRAOP_THREADS'] = '1'
 os.environ['TF_NUM_INTEROP_THREADS'] = '1'
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-# Set TensorFlow logging to only show errors
+# Set TensorFlow logging to only show errors (Removed DEBUGGING INFO print)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
@@ -97,8 +97,8 @@ class CNN_KERAS:
         # use "Leave on Out" validation. Keeps original validation set unseen
         X_train_split, X_val_split, y_train_split, y_val_split = train_test_split(self.X_train, self.y_train, train_size=.7, random_state = self.seed)
 
-        #Use keras-tuner for hyperparameter search. Save run to folder "HyperTuningRS".
-        # If retrain = True, overwrite earlier run
+        #Use keras-tuner for hyperparameter search. Save run to folder "HyperTuning(NAME)".
+        # If retrain = True, overwrite earlier run (if any)
 
         with tf.device('/CPU:0'):
             tunerRandomSearch = kt.RandomSearch(
@@ -126,6 +126,8 @@ class CNN_KERAS:
 
             # Save trained model as new file to avoid rewriting original.
             model.save(self.best_model_tuned_path_new)
+            
+            self.best_trained_model = model
 
 
     def loadModel(self, path = "../other/best_model.keras"):
@@ -139,7 +141,7 @@ class CNN_KERAS:
                 model = self.loadModel(self.best_model_tuned_path)
             else:
                 model = self.best_trained_model
-            # Evaluate on test set
+            # Evaluate on validation data
             loss, acc = model.evaluate(self.X_val, self.y_val)
             print(f"Model accuracy on validation data : {acc:.3}, with loss:{loss:.3}")
             return (loss, acc)
@@ -154,7 +156,7 @@ class CNN_KERAS:
 
             # Evaluate on test set
             loss, acc = model.evaluate(self.X_test, self.y_test)
-            print(f"Model accuracy on test data : {acc:.3}, with loss:{loss:.3}")
+            print(f"Model accuracy on test data : {acc:.4}, with loss:{loss:.4}")
             return (loss, acc)
         
     
@@ -165,6 +167,9 @@ class CNN_KERAS:
             else:
                 model = self.best_trained_model
             y_pred = model.predict(X)
+            # need to make a flat list of predicts to make them comparable with the others.
+            # Also to plot the results (if needed)
+            y_pred = np.argmax(y_pred,axis=1)
             return y_pred
     
 
