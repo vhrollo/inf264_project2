@@ -12,7 +12,7 @@ from keras import layers #Convolution2D, MaxPooling2D, Dense, Dropout, Activatio
 import keras_tuner as kt
 
 from nets import build_ANModel, build_LNModel
-###
+####
 import os
 os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
 os.environ['TF_DETERMINISTIC_OPS'] = '1'
@@ -24,7 +24,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 class CNN_KERAS:
-    def __init__(self, seed, epochs, path, retrain = False, model = 'lenet'):
+    def __init__(self, seed, epochs, path, threshold = .85,retrain = False, model = 'lenet'):
         random.seed(seed)
         np.random.seed(seed)
         random.seed(seed)
@@ -35,14 +35,17 @@ class CNN_KERAS:
         self.seed = seed
         self.epochs = epochs
         self.model_path = path
+        self.threshold = threshold
         self.retrain = retrain
 
         if model == 'lenet':
             self.best_model_tuned_path = f"{path}LeNet_model_tuned.keras"
             self.MODEL = build_LNModel
+            self.name = "LeNet"
         elif model == 'alexnet':
             self.best_model_tuned_path = f"{path}alexnet_model_tuned.keras"
             self.MODEL = build_ANModel
+            self.name = "AlexNet"
         else:
             raise ValueError("Invalid model type")
         
@@ -56,13 +59,13 @@ class CNN_KERAS:
             hypermodel = self.MODEL,
             objective = kt.Objective("val_accuracy", "max"),
             seed = self.seed,
-            project_name = "HyperTuningRS",
+            project_name = ("HyperTuning" + self.name),
             overwrite = self.retrain,
             max_trials = 6,
         )
 
         #Define threshold for early skipping
-        skip_low = SkipLowAcc(threshold=.85)
+        skip_low = SkipLowAcc(threshold=self.threshold)
         tunerRandomSearch.search(X_train,y_train, validation_data = (X_val,y_val),epochs=self.epochs,callbacks=[skip_low])
         # Save best hyperparameters
         self.best_hps = tunerRandomSearch.get_best_hyperparameters()[0]
