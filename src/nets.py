@@ -206,3 +206,105 @@ class AlexNetEsque(nn.Module):
         x = self.fc3(x)
         output = self.logsoftmax(x)
         return output
+
+####################
+# Tensorflow Keras #
+####################
+import keras
+from keras.layers import Convolution2D, MaxPooling2D, Dense, Dropout, Flatten
+from keras.optimizers import Adam,SGD
+
+#############
+# LeNet CNN #
+#############
+
+# Helper function for LeNet style CNN model
+def build_LNModel(hparam):
+    #optimizer = Adam(learning_rate=learning_rate)
+    
+    #def hparams
+    hparam_n_filter_1 = hparam.Int("Number of Filters (1)", min_value = 128, max_value = 256, step = 2, sampling = "log")
+    hparam_n_filter_2 = hparam.Int("Number of Filters (2)", min_value = 256, max_value = 512, step = 2, sampling = "log")
+    hparam_learning_rate = hparam.Float("Learning Rate", min_value = 0.001, max_value = .01, step = 10, sampling="log")
+    hparam_activation = hparam.Choice("Actrivation function", values=["relu"])
+    hparam_units = hparam.Int("Units (dense layer)", min_value = 2048, max_value = 4096, step = 2, sampling = "log")
+    hparam_droprate = hparam.Float("Dropout Rate", min_value = .4, max_value = .6, step = .2)    
+    hparam_kernel_size = hparam.Choice("Kernel Size", values=[3])
+    hparam_momentum = hparam.Choice("Momentum", values=[.89,.99])
+    
+    
+    model = keras.Sequential()
+    
+    #input layer
+    model.add(Convolution2D(filters=hparam_n_filter_1,
+                            kernel_size=(3,3),
+                            activation=hparam_activation,
+                            input_shape = (20,20,1)))
+    
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(Convolution2D(filters=hparam_n_filter_2,
+                            kernel_size=(3,3),
+                            activation=hparam_activation))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    
+    #flatten output
+    model.add(Flatten())
+    model.add(Dropout(rate=hparam_droprate))
+    model.add(Dense(units=hparam_units, activation=hparam_activation))
+    #output layer (softmax for probas)
+    model.add(Dense(17,activation="softmax"))
+
+    model.compile(optimizer=Adam(learning_rate=hparam_learning_rate), loss="categorical_crossentropy", metrics=["accuracy"])
+    return model
+
+###############
+# AlexNet CNN #
+###############
+
+def build_ANModel(hparam):
+
+    hparam_n_filter_1 = hparam.Int("Number of Filters (1)", min_value = 128, max_value = 256, step = 2, sampling = "log")
+    hparam_n_filter_2 = hparam.Int("Number of Filters (2)", min_value = 256, max_value = 512, step = 2, sampling = "log")
+    hparam_learning_rate = hparam.Float("Learning Rate", min_value = 0.001, max_value = .01, step = 10, sampling="log")
+    hparam_activation = hparam.Choice("Actrivation function", values=["relu"])
+    hparam_units = hparam.Int("Units (dense layer)", min_value = 2048, max_value = 4096, step = 2, sampling = "log")
+    hparam_droprate = hparam.Float("Dropout Rate", min_value = .4, max_value = .6, step = .2)
+    hparam_pool_size = hparam.Choice("Pool Size", values=[2])
+    hparam_kernel_size = hparam.Choice("Kernel Size", values=[3])
+    hparam_momentum = hparam.Choice("Momentum", values=[.89,.99])
+
+
+    model = keras.Sequential()
+    #input layer
+    model.add(Convolution2D(padding="same", filters=hparam_n_filter_1,kernel_size = (3,3),
+                            input_shape = (20,20,1)))
+
+    model.add(MaxPooling2D(pool_size=(hparam_pool_size,hparam_pool_size)))
+    model.add(Convolution2D(padding="same", filters=hparam_n_filter_2, kernel_size = (hparam_kernel_size,hparam_kernel_size),
+              activation = hparam_activation))
+    model.add(MaxPooling2D(pool_size=(hparam_pool_size,hparam_pool_size)))
+    
+    model.add(Convolution2D(padding="same", filters=hparam_n_filter_1, kernel_size = (hparam_kernel_size,hparam_kernel_size),
+              activation = hparam_activation))
+    model.add(Convolution2D(padding="same", filters=hparam_n_filter_2, kernel_size = (hparam_kernel_size,hparam_kernel_size),
+              activation = hparam_activation))
+
+    model.add(Convolution2D(padding="same", filters=hparam_n_filter_1, kernel_size = (hparam_kernel_size,hparam_kernel_size),
+              activation = hparam_activation))
+    model.add(MaxPooling2D(pool_size=(hparam_pool_size,hparam_pool_size)))
+
+    model.add(Flatten())
+    model.add(Dense(units = hparam_units, activation = hparam_activation))
+    model.add(Dropout(rate=hparam_droprate))
+
+    model.add(Dense(units = hparam_units, activation = hparam_activation))
+    model.add(Dropout(rate=hparam_droprate))
+    
+    model.add(Dense(units = hparam_units, activation = hparam_activation))
+    model.add(Dropout(rate=hparam_droprate))
+
+    #output layer
+    model.add(Dense(17,activation="softmax"))
+
+    model.compile(optimizer=SGD(learning_rate=hparam_learning_rate,momentum=hparam_momentum), loss="categorical_crossentropy", metrics=["accuracy"])
+    return model
