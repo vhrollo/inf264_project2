@@ -96,8 +96,6 @@ class CNN_KERAS:
         
 
     def fit(self):
-        
-
         # use "Leave on Out" validation. Keeps original validation set unseen
         X_train_split, X_val_split, y_train_split, y_val_split = train_test_split(self.X_train, self.y_train, train_size=.7, random_state = self.seed)
 
@@ -130,7 +128,6 @@ class CNN_KERAS:
 
             # Save trained model as new file to avoid rewriting original.
             model.save(self.best_model_tuned_path_new)
-            
             self.best_trained_model = model
 
 
@@ -142,14 +139,14 @@ class CNN_KERAS:
     def evaluate(self, load=False):
         with tf.device('/CPU:0'):
             if load:
-                print("Loading from Pretrained model:\n")
+                print(f"Loading Pretrained {self.name} Model:\n")
                 model = self.loadModel(self.best_model_tuned_path)
             else:
-                print("Using model trained locally:\n")
+                print(f"Using {self.name} Model Trained Locally:\n")
                 model = self.best_trained_model
             # Evaluate on validation data
             loss, acc = model.evaluate(self.X_val, self.y_val)
-            print(f"Model accuracy on validation data : {acc:.3}, with loss:{loss:.3}")
+            print(f"\n {self.name} Model accuracy on validation data : {acc:.4}, with loss:{loss:.4}")
             y_preds = self._predict(model, self.X_val)
             return (y_preds, acc)
         
@@ -157,13 +154,15 @@ class CNN_KERAS:
     def test(self, load=False):
         with tf.device('/CPU:0'):
             if load:
+                print(f"Loading Pretrained {self.name} Model:\n")
                 model = self.loadModel(self.best_model_tuned_path)
             else:
+                print(f"Using {self.name} Model Trained Locally:\n")
                 model = self.best_trained_model
 
             # Evaluate on test set
             loss, acc = model.evaluate(self.X_test, self.y_test)
-            print(f"Model accuracy on test data : {acc:.4}, with loss:{loss:.4}")
+            print(f"\n {self.name} Model accuracy on test data : {acc:.4}, with loss:{loss:.4}")
             y_preds = self._predict(model, self.X_test)
             return (y_preds, acc)
         
