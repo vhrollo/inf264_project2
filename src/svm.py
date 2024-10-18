@@ -60,7 +60,7 @@ def train(X_train, y_train, n, folds, seed=42):
     svc = SVC(random_state=seed, probability=True)
     random_search = RandomizedSearchCV(
         svc, param_distributions=param_dist, n_iter=n,
-        cv=folds, n_jobs=1, verbose=2, random_state=seed, scoring='accuracy'
+        cv=folds, n_jobs=1, verbose=2, random_state=seed, scoring='f1_weighted'
     )
 
     print("Starting training...")
@@ -88,7 +88,7 @@ def train_pca(X_train, y_train, X_val, X_test, n, folds, pca_n=5, seed=42):
     # the different number of components to test
     n_components_list = np.linspace(0.9, 0.99, pca_n)
 
-    best_accuracy = 0
+    best_f1 = 0
     best_n_components = None
     best_pca = None
     best_model = None
@@ -145,7 +145,7 @@ def train_pca(X_train, y_train, X_val, X_test, n, folds, pca_n=5, seed=42):
         svc = SVC(random_state=seed, probability=True)
         grid_search = GridSearchCV(
             svc, param_grid=param_list_shorted,
-            cv=folds, n_jobs=1, verbose=2, scoring='accuracy'
+            cv=folds, n_jobs=1, verbose=2, scoring='f1_weighted'
         )
 
         # training this model on this data
@@ -157,12 +157,12 @@ def train_pca(X_train, y_train, X_val, X_test, n, folds, pca_n=5, seed=42):
         # get the best model and parameters
         best_svc = grid_search.best_estimator_
         best_params = grid_search.best_params_
-        accuracy = grid_search.best_score_
+        f1 = grid_search.best_score_
 
 
         # cheching if the accuracy has improved since the previous best
-        if accuracy > best_accuracy:
-            best_accuracy = accuracy
+        if f1 > best_f1:
+            best_f1 = f1
             best_n_components = n_components
             best_pca = pca
             best_model = best_svc

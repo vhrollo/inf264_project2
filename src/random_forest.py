@@ -52,7 +52,7 @@ def train_rf(X_train, y_train, n, folds, seed=42):
     rf = RandomForestClassifier(random_state=seed)
     random_search = RandomizedSearchCV(
         rf, param_distributions=param_dist, n_iter=n,
-        cv=folds, n_jobs=1, verbose=2, random_state=seed, scoring='accuracy'
+        cv=folds, n_jobs=1, verbose=2, random_state=seed, scoring='f1_weighted'
     )
 
     # training the model

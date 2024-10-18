@@ -82,7 +82,7 @@ def grid_search_learning_rate(X_train, y_train, device, folds, modelclass, batch
     momentum_rates = [0.9, 0.95]
     best_lr = None
     best_momentum = None
-    best_val_acc = 0
+    best_val_f1 = 0
 
     combinations = [(lr, momentum) for lr in learning_rates for momentum in momentum_rates]
 
@@ -90,7 +90,7 @@ def grid_search_learning_rate(X_train, y_train, device, folds, modelclass, batch
 
     for lr, moementum in combinations:
         print(f"\nEvaluating learning rate: {lr} and momentum: {moementum}")
-        val_accs = []
+        val_f1s = []
 
         #changed so that we dont use val data, to avoid data leakage
         for fold, (train_idx, val_idx) in enumerate(kf.split(X_train)):
@@ -112,17 +112,19 @@ def grid_search_learning_rate(X_train, y_train, device, folds, modelclass, batch
 
             train_and_evaluate(model, train_loader, device, optimizer, criterion, scheduler, epochs)
 
-            val_accs.append((model(X_val_fold).argmax(1) == y_val_fold).float().mean().item())
+            y_val_pred = model(X_val_fold).argmax(1).cpu().numpy()
+            y_val_true = y_val_fold.cpu().numpy()
+            val_f1s.append(f1_score(y_val_true, y_val_pred, average='weighted'))
 
-        avg_val_acc = np.mean(val_accs)
-        print(f"Learning rate: {lr}, Momentum rate: {moementum}, Average Val accuracy: {avg_val_acc:.4f}")
+        avg_val_f1 = np.mean(val_f1s)
+        print(f"Learning rate: {lr}, Momentum rate: {moementum}, Average Val f1 score: {avg_val_f1:.4f}")
 
-        if avg_val_acc > best_val_acc:
-            best_val_acc = avg_val_acc
+        if avg_val_f1 > best_val_f1:
+            best_val_f1 = avg_val_f1
             best_lr = lr
             best_momentum = moementum
 
-    print(f"Best learning rate: {best_lr}, Best momentum Rate: {best_momentum} with Val accuracy: {best_val_acc:.4f}")
+    print(f"Best learning rate: {best_lr}, Best momentum Rate: {best_momentum} with Val f1 Score: {best_val_f1:.4f}")
     return best_lr, best_momentum
 
 # Final evaluation function
@@ -147,9 +149,9 @@ def evaluate_model(model, data_loader, criterion, device):
     accuracy = correct / len(data_loader.dataset)
     preds = np.concatenate(preds)
     labels = np.concatenate(labels)
-    print(f"Average loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
-    
     f1 = f1_score(labels, preds, average='weighted')
+    print(f"Average loss: {avg_loss:.4f}, F1: {f1:.4f}, Accuracy: {accuracy:.4f}")
+    
 
     return avg_loss, accuracy, preds, f1, labels
 
@@ -273,7 +275,7 @@ class CNN_PT:
         self.criterion = nn.CrossEntropyLoss()
 
         if model == 'lenet':
-            self.best_model_tuned_path = f"{path}LeNet_model_tuned.pth"
+            self.best_model_tuned_path = f"{path}LeNet_best_model_tuned.pth"
             self.MODEL = LeNet
         elif model == 'alexnet':
             self.best_model_tuned_path = f"{path}alexnet_best_model_tuned.pth"
