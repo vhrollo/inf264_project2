@@ -2,9 +2,10 @@ import numpy as np
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, f1_score
 from preprocessing import generate_balanced_data, hog_features
 from visiualising import visualize_confusion_matrix
+
 from time import time
 import random
 
@@ -78,7 +79,9 @@ def evaluate(model, X, y):
     accuracy = accuracy_score(y, y_pred)
     print(f"Accuracy: {accuracy:.4f}")
 
-    return y_pred, accuracy, c_r
+    f1 = f1_score(y, y_pred, average='weighted')
+
+    return y_pred, accuracy, c_r, f1
 
 
 def main():
@@ -98,13 +101,13 @@ def main():
     print(f"Best Parameters: {best_params}\n")
     print("\n--Evaluating on Validation Set--")
 
-    y_val_pred, val_acc, val_c_r = evaluate(best_rf, X_val, y_val)
+    y_val_pred, val_acc, val_c_r, val_f1= evaluate(best_rf, X_val, y_val)
     print(val_c_r)
     print(f"Validation Accuracy: {val_acc:.4f}")
     visualize_confusion_matrix(y_val, y_val_pred, title='Confusion Matrix on Validation Set')
 
     print("\n--Evaluating on Test Set--")
-    y_test_pred, test_acc, test_c_r = evaluate(best_rf, X_test, y_test)
+    y_test_pred, test_acc, test_c_r, test_f1 = evaluate(best_rf, X_test, y_test)
     print(test_c_r)
     print(f"Test Accuracy: {test_acc:.4f}")
     visualize_confusion_matrix(y_test, y_test_pred, title='Confusion Matrix on Test Set')
@@ -157,10 +160,10 @@ class RandomForest:
 
     def evaluate(self):
         """Evaluate the model on the validation and test set"""
-        y_val_pred, val_acc, val_c_r = evaluate(self.best_model, self.X_val, self.y_val)
-        return (y_val_pred, val_acc, val_c_r, self.y_val)
+        y_val_pred, val_acc, val_c_r, val_f1 = evaluate(self.best_model, self.X_val, self.y_val)
+        return (y_val_pred, val_acc, val_c_r, val_f1,self.y_val)
 
     def test(self):
         """Evaluate the model on the test set"""
-        y_test_pred, test_acc, test_c_r = evaluate(self.best_model, self.X_test, self.y_test)
-        return (y_test_pred, test_acc, test_c_r, self.y_test)
+        y_test_pred, test_acc, test_c_r, test_f1 = evaluate(self.best_model, self.X_test, self.y_test)
+        return (y_test_pred, test_acc, test_c_r, test_f1, self.y_test)

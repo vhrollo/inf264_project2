@@ -58,7 +58,7 @@ def visualize_confusion_matrix(y_val, y_val_pred, title='Confusion Matrix'):
     plt.ylabel('True')
     plt.show()
 
-def compare_model_accuracy(header, labels, *model_final_acc):
+def compare_model_accuracy(header, labels, ylabel, *model_final_acc):
     """
     Compare the accuracy of different models,
     which works with any amount of models and 
@@ -96,7 +96,7 @@ def compare_model_accuracy(header, labels, *model_final_acc):
 
 
     plt.title(f"{header}")
-    plt.ylabel('Accuracy')
+    plt.ylabel(f'{ylabel}')
     padding = 0.05
     plt.ylim(min_acc - padding, max_acc + padding)
     plt.show()

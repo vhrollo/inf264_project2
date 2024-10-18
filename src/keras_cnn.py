@@ -17,6 +17,8 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report
 
 from nets import build_ANModel, build_LNModel
+from sklearn.metrics import f1_score
+
 ####
 import os
 os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
@@ -155,7 +157,9 @@ class CNN_KERAS:
             y_preds = self._predict(model, self.X_val)
             c_r = classification_report(np.argmax(self.y_val, axis=1), y_preds)
 
-            return (y_preds, acc, c_r)
+            f1 = f1_score(np.argmax(self.y_val, axis=1), y_preds, average='weighted')
+
+            return (y_preds, acc, c_r, f1)
         
     
     def test(self, load=False):
@@ -175,7 +179,9 @@ class CNN_KERAS:
             y_preds = self._predict(model, self.X_test)
             c_r = classification_report(np.argmax(self.y_test, axis=0), y_preds)
 
-            return (y_preds, acc, c_r)
+            f1 = f1_score(np.argmax(self.y_test, axis=0), y_preds, average='weighted')
+
+            return (y_preds, acc, c_r, f1)
         
     
     def _predict(self, model, X):

@@ -9,6 +9,7 @@ import random
 
 from preprocessing import generate_balanced_data, scale_data10
 from nets import LeNet, AlexNetEsque
+from sklearn.metrics import f1_score
 
 # Data preparation function
 def data(device, X, y, batch_size, seed):
@@ -125,7 +126,7 @@ def grid_search_learning_rate(X_train, y_train, device, folds, modelclass, batch
     return best_lr, best_momentum
 
 # Final evaluation function
-def evaluate(model, data_loader, criterion, device):
+def evaluate_model(model, data_loader, criterion, device):
     """Evaluate the model on the validation or test set"""
     model.eval()
     total_loss = 0
@@ -147,8 +148,11 @@ def evaluate(model, data_loader, criterion, device):
     preds = np.concatenate(preds)
     labels = np.concatenate(labels)
     print(f"Average loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
+    
+    f1 = f1_score(labels, preds, average='weighted')
 
-    return avg_loss, accuracy, preds, labels
+    return avg_loss, accuracy, preds, f1, labels
+
 
 # Main function for training and evaluation
 def main():
@@ -199,12 +203,12 @@ def main():
 
     # Final evaluation on validation and test sets
     print("Evaluating model on validation data...")
-    val_loss, val_acc, val_preds, val_labels = evaluate(model, val_loader, criterion, device)
+    val_loss, val_acc, val_preds, val_f1, val_labels = evaluate_model(model, val_loader, criterion, device)
     print(f"Validation loss: {val_loss:.4f}, Validation accuracy: {val_acc:.4f}")
     print(classification_report(val_labels, val_preds))
 
     print("Evaluating model on test data...")
-    test_loss, test_acc, test_preds, test_labels = evaluate(model, test_loader, criterion, device)
+    test_loss, test_acc, test_preds, test_f1, test_labels = evaluate_model(model, test_loader, criterion, device)
     print(f"Test loss: {test_loss:.4f}, Test accuracy: {test_acc:.4f}")
     print(classification_report(test_labels, test_preds))
 
@@ -306,9 +310,9 @@ class CNN_PT:
             self.trained_model.load_state_dict(torch.load(self.best_model_tuned_path, weights_only=True))
         
         print("Evaluating model on validation data...")
-        _, val_acc, val_preds, val_labels = evaluate(self.trained_model, self.val_loader, self.criterion, self.device)
+        _, val_acc, val_preds, val_f1, val_labels = evaluate_model(self.trained_model, self.val_loader, self.criterion, self.device)
         val_c_r = classification_report(val_labels, val_preds) 
-        return (val_preds, val_acc, val_c_r, val_labels)
+        return (val_preds, val_acc, val_c_r, val_f1, val_labels)
     
     def test(self, load = True):
         if load:
@@ -316,9 +320,9 @@ class CNN_PT:
             self.trained_model.load_state_dict(torch.load(self.best_model_tuned_path, weights_only=True))
         
         print("Evaluating model on test data...")
-        _, test_acc, test_preds, test_labels = evaluate(self.trained_model, self.test_loader, self.criterion, self.device)
+        _, test_acc, test_preds, test_f1, test_labels = evaluate_model(self.trained_model, self.test_loader, self.criterion, self.device)
         test_c_r = classification_report(test_labels, test_preds)
-        return (test_preds, test_acc, test_c_r, test_labels)
+        return (test_preds, test_acc, test_c_r, test_f1, test_labels)
 
 
 
