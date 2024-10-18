@@ -146,7 +146,7 @@ class CNN_KERAS:
                 model = self.best_trained_model
             # Evaluate on validation data
             loss, acc = model.evaluate(self.X_val, self.y_val)
-            print(f"\nModel accuracy on validation data : {acc:.4}, with loss:{loss:.4}")
+            print(f"\n {self.name} Model accuracy on validation data : {acc:.4}, with loss:{loss:.4}")
             y_preds = self._predict(model, self.X_val)
             return (y_preds, acc)
         
@@ -162,7 +162,7 @@ class CNN_KERAS:
 
             # Evaluate on test set
             loss, acc = model.evaluate(self.X_test, self.y_test)
-            print(f"\nModel accuracy on test data : {acc:.4}, with loss:{loss:.4}")
+            print(f"\n {self.name} Model accuracy on test data : {acc:.4}, with loss:{loss:.4}")
             y_preds = self._predict(model, self.X_test)
             return (y_preds, acc)
         
