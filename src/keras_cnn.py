@@ -28,23 +28,26 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def data(X, y, seed=42):
-    """Prepare data for training and evaluation"""
+    """
+    Prepare data for training and evaluation.\\
+    
+    """
     X_train, X_val_test, y_train, y_val_test = train_test_split(X,y,train_size=0.7,random_state=seed)
     X_val,X_test,y_val,y_test = train_test_split(X_val_test,y_val_test, train_size=0.5, random_state=seed)
 
     X_train_aug, y_train_aug = generate_balanced_data(X_train, y_train, seed=seed)
 
-    # Reshape
+    # Reshape. Needed for keras model
     X_train_aug = X_train_aug.reshape(X_train_aug.shape[0], 20, 20, 1)
     X_val = X_val.reshape(X_val.shape[0], 20, 20, 1)
     X_test = X_test.reshape(X_test.shape[0], 20, 20, 1)
 
-    # Scale
+    # Scale the data. 
     X_train_aug = X_train_aug / 255
     X_val = X_val / 255
     X_test = X_test / 255
 
-    # Set to categorical
+    # Set to categorical. Needed for the keras modle
     y_train_aug = keras.utils.to_categorical(y_train_aug, num_classes=17)
     y_val = keras.utils.to_categorical(y_val, num_classes=17)
     y_test = keras.utils.to_categorical(y_test, num_classes=17)
@@ -55,6 +58,7 @@ def data(X, y, seed=42):
 
 class CNN_KERAS:
     def __init__(self, X, y, seed, epochs, path, threshold = .85,retrain = False, model = 'lenet'):
+
         random.seed(seed)
         np.random.seed(seed)
         random.seed(seed)
@@ -138,8 +142,10 @@ class CNN_KERAS:
     def evaluate(self, load=False):
         with tf.device('/CPU:0'):
             if load:
+                print("Loading from Pretrained model:\n")
                 model = self.loadModel(self.best_model_tuned_path)
             else:
+                print("Using model trained locally:\n")
                 model = self.best_trained_model
             # Evaluate on validation data
             loss, acc = model.evaluate(self.X_val, self.y_val)
@@ -181,6 +187,5 @@ class SkipLowAcc (keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         val_acc = logs.get("val_accuracy")
         if (val_acc is not None) and (val_acc < self.threshold):
-            print(f"ERROR\n current val_acc = {val_acc} < {self.threshold} in epoch {epoch}")
+            print(f"\nERROR\n current val_acc = {val_acc} < {self.threshold} in epoch {epoch}.\n")
             self.model.stop_training = True
-        
