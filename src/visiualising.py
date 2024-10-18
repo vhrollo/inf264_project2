@@ -101,3 +101,22 @@ def compare_model_accuracy(header, labels, *model_final_acc):
     plt.ylim(min_acc - padding, max_acc + padding)
     plt.show()
 
+
+def visualize_common_wrong_guesses(header, y_true, X_train, *false_guesses):
+    """visualize the common wrong guesses of the model"""
+    # indeces where all models got it wrong
+    
+    wrong_indices_sets = []
+    
+    for model_preds in false_guesses:
+        wrong_indices = set(np.where(model_preds != y_true)[0]) 
+        wrong_indices_sets.append(wrong_indices)
+    
+    common_wrong = set.intersection(*wrong_indices_sets)
+
+    print(f"Common wrong indices: {common_wrong}")
+
+    # visualize the common wrong guesses
+    visualize_preds(X_train[list(common_wrong)], title=header)
+
+    return common_wrong

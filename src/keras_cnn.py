@@ -144,7 +144,8 @@ class CNN_KERAS:
             # Evaluate on validation data
             loss, acc = model.evaluate(self.X_val, self.y_val)
             print(f"Model accuracy on validation data : {acc:.3}, with loss:{loss:.3}")
-            return (loss, acc)
+            y_preds = self._predict(model, self.X_val)
+            return (y_preds, acc)
         
     
     def test(self, load=False):
@@ -157,15 +158,12 @@ class CNN_KERAS:
             # Evaluate on test set
             loss, acc = model.evaluate(self.X_test, self.y_test)
             print(f"Model accuracy on test data : {acc:.4}, with loss:{loss:.4}")
-            return (loss, acc)
+            y_preds = self._predict(model, self.X_test)
+            return (y_preds, acc)
         
     
-    def predict(self, X, load=False):
+    def _predict(self, model, X):
         with tf.device('/CPU:0'):
-            if load:
-                model = self.loadModel(self.best_model_tuned_path_new)
-            else:
-                model = self.best_trained_model
             y_pred = model.predict(X)
             # need to make a flat list of predicts to make them comparable with the others.
             # Also to plot the results (if needed)
