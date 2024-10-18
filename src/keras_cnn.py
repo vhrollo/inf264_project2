@@ -14,6 +14,8 @@ import keras_tuner as kt
 from preprocessing import generate_balanced_data
 from sklearn.preprocessing import MinMaxScaler
 
+from sklearn.metrics import classification_report
+
 from nets import build_ANModel, build_LNModel
 ####
 import os
@@ -144,11 +146,16 @@ class CNN_KERAS:
             else:
                 print(f"Using {self.name} Model Trained Locally:\n")
                 model = self.best_trained_model
+
             # Evaluate on validation data
             loss, acc = model.evaluate(self.X_val, self.y_val)
             print(f"\n {self.name} Model accuracy on validation data : {acc:.4}, with loss:{loss:.4}")
+
+            # Get predictions and classification report
             y_preds = self._predict(model, self.X_val)
-            return (y_preds, acc)
+            c_r = classification_report(np.argmax(self.y_val, axis=1), y_preds)
+
+            return (y_preds, acc, c_r)
         
     
     def test(self, load=False):
@@ -163,8 +170,12 @@ class CNN_KERAS:
             # Evaluate on test set
             loss, acc = model.evaluate(self.X_test, self.y_test)
             print(f"\n {self.name} Model accuracy on test data : {acc:.4}, with loss:{loss:.4}")
+        
+            # Get predictions and classification report
             y_preds = self._predict(model, self.X_test)
-            return (y_preds, acc)
+            c_r = classification_report(np.argmax(self.y_test, axis=0), y_preds)
+
+            return (y_preds, acc, c_r)
         
     
     def _predict(self, model, X):
@@ -172,6 +183,7 @@ class CNN_KERAS:
             y_pred = model.predict(X)
             # need to make a flat list of predicts to make them comparable with the others.
             # Also to plot the results (if needed)
+
             y_pred = np.argmax(y_pred,axis=1)
             return y_pred
     
