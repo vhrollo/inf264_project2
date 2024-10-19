@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 import random
 
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import train_test_split
 
 from keras import backend as K
 from keras.optimizers import Adam, SGD
@@ -17,8 +17,6 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report
 
 from nets import build_ANModel, build_LNModel
-from sklearn.metrics import f1_score
-
 ####
 import os
 os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
@@ -109,7 +107,7 @@ class CNN_KERAS:
         with tf.device('/CPU:0'):
             tunerRandomSearch = kt.RandomSearch(
                 hypermodel = self.MODEL,
-                objective = kt.Objective("val_accuracy", "max"),
+                objective = kt.Objective("val_f1_score", "max"), #Select the best model based on weighted f1 score
                 seed = self.seed,
                 project_name = ("HyperTuning" + self.name),
                 overwrite = self.retrain,
@@ -122,12 +120,13 @@ class CNN_KERAS:
 
             # Save best hyperparameters
             self.best_hps = tunerRandomSearch.get_best_hyperparameters()[0]
-
+            print(f"\n Best hyperparameters found:\n{self.best_hps.values}")
             # Get the best model
             self.best_trained_model = tunerRandomSearch.get_best_models()[0]
             model = self.best_trained_model
 
             # Fit the best params to the whole training data
+            print("\nFitting The Whole Training Data:\n")
             model.fit(self.X_train, self.y_train, epochs=8)
 
             # Save trained model as new file to avoid rewriting original.
@@ -147,19 +146,18 @@ class CNN_KERAS:
                 model = self.loadModel(self.best_model_tuned_path)
             else:
                 print(f"Using {self.name} Model Trained Locally:\n")
-                model = self.best_trained_model
+                #model = self.best_trained_model
+                model = self.loadModel(self.best_model_tuned_path_new)
 
             # Evaluate on validation data
-            loss, acc = model.evaluate(self.X_val, self.y_val)
+            loss, acc, f1 = model.evaluate(self.X_val, self.y_val)
             print(f"\n {self.name} Model accuracy on validation data : {acc:.4}, with loss:{loss:.4}")
 
             # Get predictions and classification report
             y_preds = self._predict(model, self.X_val)
             c_r = classification_report(np.argmax(self.y_val, axis=1), y_preds)
 
-            f1 = f1_score(np.argmax(self.y_val, axis=1), y_preds, average='weighted')
-
-            return (y_preds, acc, c_r, f1)
+            return (y_preds, acc, c_r,f1)
         
     
     def test(self, load=False):
@@ -179,9 +177,7 @@ class CNN_KERAS:
             y_preds = self._predict(model, self.X_test)
             c_r = classification_report(np.argmax(self.y_test, axis=0), y_preds)
 
-            f1 = f1_score(np.argmax(self.y_test, axis=0), y_preds, average='weighted')
-
-            return (y_preds, acc, c_r, f1)
+            return (y_preds, acc, c_r)
         
     
     def _predict(self, model, X):

@@ -221,6 +221,8 @@ class AlexNetEsque(nn.Module):
 # Tensorflow Keras #
 ####################
 import keras
+import tensorflow as tf
+from keras import metrics
 from keras.layers import Convolution2D, MaxPooling2D, Dense, Dropout, Flatten
 from keras.optimizers import Adam,SGD
 
@@ -265,7 +267,9 @@ def build_LNModel(hparam):
     #output layer (softmax for probas)
     model.add(Dense(17,activation="softmax"))
 
-    model.compile(optimizer=Adam(learning_rate=hparam_learning_rate), loss="categorical_crossentropy", metrics=["accuracy"])
+    model.compile(optimizer=Adam(learning_rate=hparam_learning_rate),
+                    loss="categorical_crossentropy", 
+                    metrics=[ tf.keras.metrics.F1Score(average = "weighted"), "accuracy"])
     return model
 
 ###############
@@ -309,11 +313,10 @@ def build_ANModel(hparam):
     model.add(Dense(units = hparam_units, activation = hparam_activation))
     model.add(Dropout(rate=hparam_droprate))
     
-    model.add(Dense(units = hparam_units, activation = hparam_activation))
-    model.add(Dropout(rate=hparam_droprate))
-
     #output layer
     model.add(Dense(17,activation="softmax"))
 
-    model.compile(optimizer=Adam(learning_rate=hparam_learning_rate), loss="categorical_crossentropy", metrics=["accuracy"])
+    model.compile(optimizer=Adam(learning_rate=hparam_learning_rate),
+                loss="categorical_crossentropy", 
+                metrics=[tf.keras.metrics.F1Score(average = "weighted"),"accuracy"])
     return model
