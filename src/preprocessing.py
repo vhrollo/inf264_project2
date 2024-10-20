@@ -4,6 +4,7 @@ import tensorflow as tf
 from typing import Tuple, Optional
 from sklearn.preprocessing import StandardScaler
 from skimage.feature import hog
+import random
 
 # preprocessing functions
 
@@ -51,7 +52,7 @@ def generate_label(X: np.ndarray, y: np.ndarray, label: int, n: int, seed: Optio
     return np.array(X_augs), np.array(y_augs)
 
 
-def generate_balanced_data(X: np.ndarray, y: np.ndarray, seed: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray]:
+def generate_balanced_data(X: np.ndarray, y: np.ndarray, seed: int) -> Tuple[np.ndarray, np.ndarray]:
     """
     generates balanced data by augmenting the minority classes\\
     to match the majority class. The minority classes are\\
@@ -72,9 +73,9 @@ def generate_balanced_data(X: np.ndarray, y: np.ndarray, seed: Optional[int] = N
     """
 
     # set seed for reproducibility
-    if seed is not None: 
-        np.random.seed(seed)
-        tf.random.set_seed(seed)
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+    random.seed(seed)
 
     labels, counts = np.unique(y, return_counts=True)
     n_samples = np.max(counts)

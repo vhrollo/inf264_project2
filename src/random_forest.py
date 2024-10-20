@@ -40,7 +40,7 @@ def train_rf(X_train, y_train, n, folds, seed=42):
 
     np.random.seed(seed)
     random.seed(seed)
-    
+
     # optimized for time and performance
     param_dist = {
         'n_estimators': np.random.randint(100, 300, size=50),
@@ -98,7 +98,7 @@ def main():
 
     X_train, X_val, X_test, y_train, y_val, y_test = data(X, y, seed=seed)
 
-    best_rf, best_params = train_rf(X_train, y_train, n=5, folds=3, seed=seed)
+    best_rf, best_params = train_rf(X_train, y_train, n=1, folds=3, seed=seed)
 
     print("Evaluating...")
     print(f"Best Parameters: {best_params}\n")
