@@ -134,7 +134,7 @@ class CNN_KERAS:
             self.best_trained_model = model
 
 
-    def loadModel(self, path = "../other/best_model.h5"):
+    def _loadModel(self, path):
         model = keras.models.load_model(path)
         return model
     
@@ -143,11 +143,11 @@ class CNN_KERAS:
         with tf.device('/CPU:0'):
             if load:
                 print(f"Loading Pretrained {self.name} Model:\n")
-                model = self.loadModel(self.best_model_tuned_path)
+                model = self._loadModel(self.best_model_tuned_path)
             else:
                 print(f"Using {self.name} Model Trained Locally:\n")
                 #model = self.best_trained_model
-                model = self.loadModel(self.best_model_tuned_path_new)
+                model = self._loadModel(self.best_model_tuned_path_new)
 
             # Evaluate on validation data
             loss, acc, f1 = model.evaluate(self.X_val, self.y_val)
@@ -164,10 +164,11 @@ class CNN_KERAS:
         with tf.device('/CPU:0'):
             if load:
                 print(f"Loading Pretrained {self.name} Model:\n")
-                model = self.loadModel(self.best_model_tuned_path)
+                model = self._loadModel(self.best_model_tuned_path)
             else:
                 print(f"Using {self.name} Model Trained Locally:\n")
-                model = self.best_trained_model
+                #model = self.best_trained_model
+                model = self._loadModel(self.best_model_tuned_path_new)
 
             # Evaluate on test set
             loss, acc = model.evaluate(self.X_test, self.y_test)
