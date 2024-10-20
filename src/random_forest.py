@@ -38,6 +38,9 @@ def data(X, y, seed=42):
 def train_rf(X_train, y_train, n, folds, seed=42):
     """Train the RandomForestClassifier model with Bagging"""
 
+    np.random.seed(seed)
+    random.seed(seed)
+    
     # optimized for time and performance
     param_dist = {
         'n_estimators': np.random.randint(100, 300, size=50),
