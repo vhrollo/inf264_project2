@@ -84,13 +84,13 @@ class CNN_KERAS:
 
 
         if model == 'lenet':
-            self.best_model_tuned_path = f"{path}LeNet_model_tuned.keras"
-            self.best_model_tuned_path_new = f"{path}LeNet_model_tuned_new.keras"
+            self.best_model_tuned_path = f"{path}LeNet_model_tuned.h5"
+            self.best_model_tuned_path_new = f"{path}LeNet_model_tuned_new.h5"
             self.MODEL = build_LNModel
             self.name = "LeNet"
         elif model == 'alexnet':
-            self.best_model_tuned_path = f"{path}alexnet_model_tuned.keras"
-            self.best_model_tuned_path_new = f"{path}alexnet_model_tuned_new.keras"
+            self.best_model_tuned_path = f"{path}alexnet_model_tuned.h5"
+            self.best_model_tuned_path_new = f"{path}alexnet_model_tuned_new.h5"
             self.MODEL = build_ANModel
             self.name = "AlexNet"
         else:
@@ -134,7 +134,7 @@ class CNN_KERAS:
             self.best_trained_model = model
 
 
-    def loadModel(self, path = "../other/best_model.keras"):
+    def loadModel(self, path = "../other/best_model.h5"):
         model = keras.models.load_model(path)
         return model
     
