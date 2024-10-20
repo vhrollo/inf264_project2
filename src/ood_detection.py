@@ -25,7 +25,7 @@ class OODDetection:
         # Fit GaussianMixture model on the training PCA data
         self.gmm = GaussianMixture(n_components=self.n_components, 
                                    covariance_type='full', 
-                                   random_state=self.seed, 
+                                   random_state=seed, 
                                    init_params='kmeans')
         
         # Fit the GMM model on the training data
